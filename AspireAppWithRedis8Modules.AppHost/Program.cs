@@ -1,15 +1,12 @@
-using QCMS.AppHost.redis;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
-var redis = builder.AddRedisV8("db", configFilePath: "/etc/redis/redis-full.conf")
-    .WithDockerfile("redis")
-    .WithRedisInsight()
-    .WithEndpoint("tcp", endpoint =>
+var redis = builder
+    .AddRedis("db")
+    .WithImageTag(tag: "8")
+    .WithArgs(context =>
     {
-        endpoint.Port = 6379;
-        endpoint.TargetPort = 6379;
-    });
-
+        context.Args[1] = $"{context.Args[1]} --loadmodule /usr/local/lib/redis/modules/redisearch.so --loadmodule /usr/local/lib/redis/modules/rejson.so";
+    })
+    .WithRedisInsight();
 
 builder.Build().Run();
